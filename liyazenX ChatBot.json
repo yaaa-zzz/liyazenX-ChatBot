@@ -1,0 +1,224 @@
+{
+  "name": "liyazenX ChatBot",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {
+          "loadPreviousSession": "memory"
+        }
+      },
+      "id": "89f20e65-d6ba-40cd-b6d8-8b80509dc627",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        1056,
+        624
+      ],
+      "webhookId": "c94acc1a-4f1a-4a9a-9194-e8db73edc807"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "dba81ec1-0a87-496c-aa6a-d6153ab11c8b",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        848
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "PQigoZQf5n9gSBIb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "id": "64a7c5e1-c4a6-4f31-918d-d098df29f3db",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1136,
+        848
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are Nathan, a highly capable AI assistant powered by Google Gemini with access to multiple specialized tools.\n\nYour capabilities:\n- Calculator: Perform mathematical calculations and solve equations\n- Wikipedia: Search for factual information on any topic\n- Data Processor: Execute custom code to process and transform data\n- API Caller: Fetch real-time information from external APIs\n\nKey behaviors:\n- Be conversational, friendly, and professional\n- Proactively use tools when they can help answer questions better\n- Explain your reasoning when using tools\n- Provide clear, well-structured answers\n- Ask clarifying questions when needed\n- Remember context from previous messages\n- Be creative in combining tools to solve complex problems\n\nWhen users ask questions:\n1. Determine which tool(s) would be most helpful\n2. Use the appropriate tool(s) to gather information\n3. Synthesize the results into a clear, helpful response\n\nRespond naturally and adapt your tone to match the user's needs."
+        }
+      },
+      "id": "d72acf3b-05a5-46c4-93fd-c5a4ca2199c8",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1600,
+        624
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        1536,
+        848
+      ],
+      "id": "101c18c8-1b01-4828-9fcc-2578cf4b4516",
+      "name": "Calculator"
+    },
+    {
+      "parameters": {
+        "description": "Execute custom JavaScript code to process data, manipulate strings, or perform complex calculations",
+        "jsCode": "// Access AI-provided input using $fromAI expression\nconst userInput = $fromAI(\"data_to_process\", \"The data or text to process\", \"string\", \"default\");\n\n// Process the data\nconst result = {\n  processed: userInput.toUpperCase(),\n  length: userInput.length,\n  timestamp: new Date().toISOString()\n};\n\nreturn result;"
+      },
+      "id": "884bb9e1-cef5-4188-91e6-64fb8ce562b8",
+      "name": "Code Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        1664,
+        848
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Make HTTP requests to external APIs to fetch real-time data",
+        "url": "={{ $fromAI(\"api_endpoint\", \"The API endpoint URL to call\", \"string\", \"https://api.example.com/data\") }}",
+        "options": {}
+      },
+      "id": "28068e55-21e0-4601-a4e8-85c4a7a8b7ca",
+      "name": "HTTP Request Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        1792,
+        848
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        848
+      ],
+      "id": "d0561032-8b73-4a8c-866e-13189013f0f8",
+      "name": "Wikipedia"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Chat Trigger",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9b26bacf-a372-4c7e-ab79-ddaecaed88a2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e4143375fa25b0a57c33042f1845aedf11d1c43fc979beed336d8198f698f89d"
+  },
+  "id": "AP18b8jIO2UcqYOy",
+  "tags": []
+}
